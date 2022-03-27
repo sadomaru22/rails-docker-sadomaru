@@ -1,0 +1,24 @@
+version: '3'
+services:
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      #local：docker側、localをdocker側に同期することで、データが毎回消えなくなる。
+      - ./src/db/mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+  web:
+    #直下にあるDockerfileを使うよ、という意味
+    build: .
+    command: bundle exec rails s -p 3000 -b '0.0.0.0'
+    volumes:
+      #同期
+      - ./src:/app
+    ports:
+      - '3000:3000'
+    environment:
+      RAILS_ENV: development
+    depends_on:
+      #依存関係。webサービスはdbサービスに依存しているよという意味。これしないと、Railsアプリを動かすときのDB接続が一発。楽。。
+      - db
